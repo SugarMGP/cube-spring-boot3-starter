@@ -57,10 +57,10 @@ public class CubeService {
                 .toEntity(CubeUploadResponse.class)
                 .getBody();
         if (resp == null) {
-            throw new CubeException("上传失败");
+            throw new CubeException(200500, "上传失败");
         }
         if (resp.getData() == null) {
-            throw new CubeException(resp.getMsg());
+            throw new CubeException(resp.getCode(), resp.getMsg());
         }
         return resp.getObjectKey();
     }
@@ -82,10 +82,10 @@ public class CubeService {
                 .toEntity(CubeDeleteResponse.class)
                 .getBody();
         if (resp == null) {
-            throw new CubeException("删除失败");
+            throw new CubeException(200500, "删除失败");
         }
         if (resp.getCode() != 200) {
-            throw new CubeException(resp.getMsg());
+            throw new CubeException(resp.getCode(), resp.getMsg());
         }
     }
 
