@@ -2,13 +2,14 @@ package org.jh.cube;
 
 import org.jh.cube.response.CubeDeleteResponse;
 import org.jh.cube.response.CubeUploadResponse;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -30,24 +31,27 @@ public class CubeService {
     /**
      * 上传文件
      *
-     * @param file        文件读取流
-     * @param fileName    文件名
+     * @param file        文件
      * @param location    存储路径（可选）
      * @param convertWebp 是否转换为 webp 格式
      * @param useUuid     是否使用 UUID 作为文件名
      * @return 返回的 ObjectKey
      */
     public String uploadFile(
-            InputStream file,
-            String fileName,
+            MultipartFile file,
             String location,
             boolean convertWebp,
-            boolean useUuid) {
+            boolean useUuid) throws IOException {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new InputStreamResource(file) {
+        body.add("file", new ByteArrayResource(file.getBytes()) {
             @Override
             public String getFilename() {
-                return fileName;
+                return file.getOriginalFilename();
+            }
+
+            @Override
+            public long contentLength() {
+                return file.getSize();
             }
         });
         body.add("bucket", properties.getBucketName());
