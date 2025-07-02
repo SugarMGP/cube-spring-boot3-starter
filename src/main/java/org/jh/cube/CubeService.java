@@ -80,14 +80,13 @@ public class CubeService {
     /**
      * 删除文件
      *
-     * @param bucket    存储桶
      * @param objectKey 文件路径
      */
-    public void deleteFile(String bucket, String objectKey) {
+    public void deleteFile(String objectKey) {
         CubeDeleteResponse resp = restClient.delete()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/delete")
-                        .queryParam("bucket", bucket)
+                        .queryParam("bucket", properties.getBucketName())
                         .queryParam("object_key", objectKey)
                         .build())
                 .retrieve()
