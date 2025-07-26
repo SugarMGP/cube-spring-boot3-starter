@@ -10,6 +10,12 @@ public class CubeException extends RuntimeException {
     private final int code;
     private final String message;
 
+    public CubeException() {
+        super();
+        this.code = 200500;
+        this.message = "上传失败";
+    }
+
     public CubeException(int code, String message) {
         super(message);
         this.code = code;

@@ -1,6 +1,7 @@
 package org.jh.cube;
 
-import org.jh.cube.response.CubeDeleteResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.jh.cube.response.CubeUploadResponse;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
@@ -16,12 +17,15 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author SugarMGP
  */
+@Slf4j
 public class CubeService {
     private final CubeProperties properties;
     private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
-    public CubeService(CubeProperties properties) {
+    public CubeService(CubeProperties properties, ObjectMapper objectMapper) {
         this.properties = properties;
+        this.objectMapper = objectMapper;
         this.restClient = RestClient.builder()
                 .baseUrl(properties.getBaseUrl())
                 .defaultHeader("Key", properties.getApiKey())
@@ -61,15 +65,23 @@ public class CubeService {
         body.add("convert_webp", convertWebp);
         body.add("use_uuid", useUuid);
 
-        CubeUploadResponse resp = restClient.post()
+        String response = restClient.post()
                 .uri("/api/upload")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(body)
                 .retrieve()
-                .toEntity(CubeUploadResponse.class)
-                .getBody();
+                .body(String.class);
+
+        CubeUploadResponse resp;
+        try {
+            resp = objectMapper.readValue(response, CubeUploadResponse.class);
+        } catch (Exception e) {
+            log.error("上传响应解析失败，返回内容: {}", response, e);
+            throw new CubeException();
+        }
+
         if (resp == null) {
-            throw new CubeException(200500, "上传失败");
+            throw new CubeException();
         }
         if (resp.getData() == null) {
             throw new CubeException(resp.getCode(), resp.getMsg());
@@ -83,17 +95,25 @@ public class CubeService {
      * @param objectKey 文件路径
      */
     public void deleteFile(String objectKey) {
-        CubeDeleteResponse resp = restClient.delete()
+        String response = restClient.delete()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/delete")
                         .queryParam("bucket", properties.getBucketName())
                         .queryParam("object_key", objectKey)
                         .build())
                 .retrieve()
-                .toEntity(CubeDeleteResponse.class)
-                .getBody();
+                .body(String.class);
+
+        CubeUploadResponse resp;
+        try {
+            resp = objectMapper.readValue(response, CubeUploadResponse.class);
+        } catch (Exception e) {
+            log.error("删除响应解析失败，返回内容: {}", response, e);
+            throw new CubeException();
+        }
+
         if (resp == null) {
-            throw new CubeException(200500, "删除失败");
+            throw new CubeException();
         }
         if (resp.getCode() != 200) {
             throw new CubeException(resp.getCode(), resp.getMsg());
