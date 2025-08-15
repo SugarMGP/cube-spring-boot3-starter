@@ -44,8 +44,8 @@ public class CubeService {
     public String uploadFile(
             MultipartFile file,
             String location,
-            boolean convertWebp,
-            boolean useUuid) throws IOException {
+            Boolean convertWebp,
+            Boolean useUuid) throws IOException {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", new ByteArrayResource(file.getBytes()) {
             @Override
@@ -124,10 +124,23 @@ public class CubeService {
      * 拼接获取文件的 URL
      *
      * @param objectKey 文件路径
+     * @param thumbnail 是否缩略图
      * @return 完整的文件访问 URL
      */
-    public String getFileUrl(String objectKey) {
-        String key = URLEncoder.encode(objectKey, StandardCharsets.UTF_8);
-        return properties.getBaseUrl() + "/api/file?bucket=" + properties.getBucketName() + "&object_key=" + key;
+    public String getFileUrl(String objectKey, Boolean thumbnail) {
+        String encodedKey = URLEncoder.encode(objectKey, StandardCharsets.UTF_8);
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(properties.getBaseUrl())
+                .append("/api/file?bucket=")
+                .append(properties.getBucketName())
+                .append("&object_key=")
+                .append(encodedKey);
+
+        if (Boolean.TRUE.equals(thumbnail)) {
+            sb.append("&thumbnail=true");
+        }
+
+        return sb.toString();
     }
 }
